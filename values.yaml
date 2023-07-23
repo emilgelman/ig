@@ -1,0 +1,7 @@
+image:
+  # -- Container repository for the container image
+  repository: emilgelmantest.azurecr.io/ig
+  # -- Pull policy for the container image
+  pullPolicy: Always
+  # -- Tag for the container image
+  tag: "latest"
