@@ -102,7 +102,7 @@ func eventCallback(event any) {
 }
 
 func createProcessCreationTracer(enrichers *containercollection.ContainerCollection) (*execTracer.Tracer, error) {
-	tracer, err := execTracer.NewTracer(&execTracer.Config{}, enrichers, execEventCallback)
+	tracer, err := execTracer.NewTracer(&execTracer.Config{GetCwd: true}, enrichers, execEventCallback)
 	if err != nil {
 		return nil, err
 	}
