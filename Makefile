@@ -29,8 +29,8 @@ upgrade:
 .PHONY: linux-amd64
 linux-amd64:
 	$(GO) mod download
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GO) build -o ig .
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GO) build -o gadgettracermanager ./tracemanager
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GO) build -buildvcs=false -o ig .
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GO) build -buildvcs=false -o gadgettracermanager ./tracemanager
 
 .PHONY: build
 build: linux-amd64

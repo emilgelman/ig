@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cilium/ebpf/rlimit"
+	containercollection "github.com/inspektor-gadget/inspektor-gadget/pkg/container-collection"
+	containerutils "github.com/inspektor-gadget/inspektor-gadget/pkg/container-utils"
+	tracercollection "github.com/inspektor-gadget/inspektor-gadget/pkg/tracer-collection"
 	"os"
 	"os/signal"
 	"syscall"
@@ -20,9 +23,44 @@ func main() {
 		panic(err)
 	}
 
+	// Create and initialize the container collection
+	containerCollection := &containercollection.ContainerCollection{}
+
+	tracerCollection, err := tracercollection.NewTracerCollection(containerCollection)
+	if err != nil {
+		fmt.Printf("failed to create trace-collection: %s\n", err)
+		return
+	}
+	defer tracerCollection.Close()
+
+	// Define the different options for the container collection instance
+	opts := []containercollection.ContainerCollectionOption{
+		// Indicate the callback that will be invoked each time
+		// there is an event
+		containercollection.WithTracerCollection(tracerCollection),
+
+		// Enrich events with Linux namespaces information
+		// It's needed to be able to filter by containers in this example.
+		containercollection.WithLinuxNamespaceEnrichment(),
+		containercollection.WithKubernetesEnrichment(os.Getenv("NODE_NAME"), nil),
+
+		// Enrich those containers with data from the container runtime
+		// Use containerd as an example for AKS
+		containercollection.WithMultipleContainerRuntimesEnrichment(
+			[]*containerutils.RuntimeConfig{
+				{Name: "containerd"},
+			}),
+	}
+
+	if err := containerCollection.Initialize(opts...); err != nil {
+		fmt.Printf("failed to initialize container collection: %s\n", err)
+		return
+	}
+	defer containerCollection.Close()
+
 	// create tracers
 	//tracer, err := createNetworkTracer()
-	tracer, err := createProcessCreationTracer()
+	tracer, err := createProcessCreationTracer(containerCollection)
 	if err != nil {
 		panic(err)
 	}
@@ -63,8 +101,8 @@ func eventCallback(event any) {
 	}
 }
 
-func createProcessCreationTracer() (*execTracer.Tracer, error) {
-	tracer, err := execTracer.NewTracer(&execTracer.Config{}, nil, execEventCallback)
+func createProcessCreationTracer(enrichers *containercollection.ContainerCollection) (*execTracer.Tracer, error) {
+	tracer, err := execTracer.NewTracer(&execTracer.Config{}, enrichers, execEventCallback)
 	if err != nil {
 		return nil, err
 	}
