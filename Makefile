@@ -18,13 +18,13 @@ DOCKER ?= docker
 install:
 	helm repo add gadget https://inspektor-gadget.github.io/charts
 	helm repo update
-	helm install gadget gadget/gadget --namespace=gadget --create-namespace -f ig/values.yaml
+	helm install gadget gadget/gadget --namespace=gadget --create-namespace -f helm/values.yaml
 
 .PHONY: upgrade
 upgrade:
 	helm repo add gadget https://inspektor-gadget.github.io/charts
 	helm repo update
-	helm upgrade gadget gadget/gadget --namespace=gadget -f ig/values.yaml
+	helm upgrade gadget gadget/gadget --namespace=gadget -f helm/values.yaml
 
 .PHONY: linux-amd64
 linux-amd64:

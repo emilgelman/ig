@@ -6,6 +6,7 @@ COPY ig .
 COPY entrypoint.sh .
 # used for liveness probe (can't override in helm)
 COPY gadgettracermanager /bin/gadgettracermanager
+COPY rules /rules
 # can't override in helm
 RUN chmod u+x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/bin/sh"]
